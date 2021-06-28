@@ -10,10 +10,9 @@
     <name>Proxy Maintainers</name>
   </maintainer>
   <stabilize-allarches/>
-  <use>
-    <flag name="bash-completion">Enables bash-completion support</flag>
-  </use>
   <upstream>
-    <remote-id type="github">MinecraftServerControl/mscs</remote-id>
+    <remote-id type="pypi">Flask-MQTT</remote-id>
+    <remote-id type="github">stlehmann/Flask-MQTT</remote-id>
   </upstream>
 </pkgmetadata>
+
