@@ -7,12 +7,17 @@ PYTHON_COMPAT=( python3_{7..9} )
 
 inherit distutils-r1
 
+MY_PN="Flask-MQTT"
+MY_PV="${PV}"
+MY_P="${MY_PN}-${MY_PV}"
+S="${WORKDIR}/${MY_P}"
+
 if [[ "${PV}" == "9999" ]]; then
-	EGIT_REPO_URI="https://github.com/stlehmann/${PN}.git"
+	EGIT_REPO_URI="https://github.com/stlehmann/${MY_PN}.git"
 	inherit git-r3
 else
-	SRC_URI="https://github.com/stlehmann/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz"
-	KEYWORDS="amd64 ~arm ~arm64 x86"
+	SRC_URI="https://github.com/stlehmann/${MY_PN}/archive/${MY_PV}.tar.gz -> ${MY_P}.tar.gz"
+	KEYWORDS="-* ~amd64"
 fi
 
 DESCRIPTION="A Flask extension for Message Queue Telemetry Transport (MQTT)"
@@ -20,7 +25,6 @@ HOMEPAGE="https://github.com/stlehmann/Flask-MQTT https://pypi.org/project/Flask
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="-* ~amd64"
 
 BDEPEND="test? ( app-misc/mosquitto )"
 RDEPEND="
