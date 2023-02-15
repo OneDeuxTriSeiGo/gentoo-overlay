@@ -16,7 +16,7 @@ IUSE="bash-completion"
 
 MY_PN="mscs"
 MY_PV="${PV}"
-MY_P="${MY_PN}-v.${MY_PV}"
+MY_P="${MY_PN}-336fb8386f1ddac9df58352323d477c83cba3ba9"
 S="${WORKDIR}/${MY_P}"
 
 RDEPEND="

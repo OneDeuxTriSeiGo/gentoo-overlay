@@ -11,4 +11,4 @@ RDEPEND=( ~virtual/jre-17 ) app-admin/sudo app-backup/rdiff-backup dev-perl/JSON
 SLOT=0
 SRC_URI=https://github.com/MinecraftServerControl/mscs/archive/336fb8386f1ddac9df58352323d477c83cba3ba9.tar.gz -> minecraft-mscs-2022.11.28.tar.gz
 _eclasses_=toolchain-funcs	9a610728b9bcca1919234cceb35a1027	multilib	5ca4e49abed8e3a2f7b56920eadee157	bash-completion-r1	f5e7a020fd9c741740756aac61bf75ff
-_md5_=d64e528e4801dd20fee1acaaa147d51e
+_md5_=b9d4a5c36de83dd7af83b214188455b6
