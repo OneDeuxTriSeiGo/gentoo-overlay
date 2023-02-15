@@ -1,0 +1,258 @@
+From 3c7ab74c4834b04891f5e718232c87531ba16e56 Mon Sep 17 00:00:00 2001
+From: Jacob Abel <jacobabel@nullpo.dev>
+Date: Wed, 15 Feb 2023 04:53:15 -0500
+Subject: [PATCH] Gentoo Changes
+
+---
+ Makefile      |  51 -------------------
+ mscs          |   4 +-
+ mscs.defaults | 132 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ mscs.initd    |  22 +++++++++
+ 4 files changed, 156 insertions(+), 53 deletions(-)
+ delete mode 100644 Makefile
+ create mode 100644 mscs.defaults
+ create mode 100644 mscs.initd
+
+diff --git a/Makefile b/Makefile
+deleted file mode 100644
+index b861dfa..0000000
+--- a/Makefile
++++ /dev/null
+@@ -1,51 +0,0 @@
+-MSCS_USER := minecraft
+-MSCS_HOME := /opt/mscs
+-
+-MSCTL := /usr/local/bin/msctl
+-MSCS := /usr/local/bin/mscs
+-MSCS_INIT_D := /etc/init.d/mscs
+-MSCS_SERVICE := /etc/systemd/system/mscs.service
+-MSCS_SERVICE_TEMPLATE := /etc/systemd/system/mscs@.service
+-MSCS_COMPLETION := /etc/bash_completion.d/mscs
+-
+-UPDATE_D := $(wildcard update.d/*)
+-
+-.PHONY: install adduser update clean
+-
+-install: adduser update
+-	if which systemctl; then \
+-		systemctl -f enable mscs.service; \
+-	else \
+-		ln -s $(MSCS) $(MSCS_INIT_D); \
+-		update-rc.d mscs defaults; \
+-	fi
+-	
+-adduser:
+-        # safety check to see if user exists before trying to create it 
+-	if id $(MSCS_USER); then \
+-                echo "Minecraft user $(MSCS_USER) exists so not creating it"; \
+-        else \
+-                useradd --system --user-group --create-home -K UMASK=0022 --home $(MSCS_HOME) $(MSCS_USER); \
+-        fi
+-
+-update:
+-	install -m 0755 msctl $(MSCTL)
+-	install -m 0755 mscs $(MSCS)
+-	install -m 0644 mscs.completion $(MSCS_COMPLETION)
+-	if which systemctl; then \
+-		install -m 0644 mscs.service $(MSCS_SERVICE); \
+-		install -m 0644 mscs@.service $(MSCS_SERVICE_TEMPLATE); \
+-	fi
+-	@for script in $(UPDATE_D); do \
+-		sh $$script; \
+-	done; true;
+-
+-clean:
+-	if which systemctl; then \
+-		systemctl -f disable mscs.service; \
+-		rm -f $(MSCS_SERVICE) $(MSCS_SERVICE_TEMPLATE); \
+-	else \
+-		update-rc.d mscs remove; \
+-		rm -f $(MSCS_INIT_D); \
+-	fi
+-	rm -f $(MSCTL) $(MSCS) $(MSCS_COMPLETION)
+diff --git a/mscs b/mscs
+index 560fceb..8d9e5d3 100755
+--- a/mscs
++++ b/mscs
+@@ -19,10 +19,10 @@ PROG=$(basename $0)
+ USER_NAME="minecraft"
+ 
+ # Setup the default installation location.
+-LOCATION="/opt/mscs"
++LOCATION="$(getent passwd $USER_NAME | cut -d: -f6)"
+ 
+ # Setup the default location of the mscs.defaults file.
+-MSCS_DEFAULTS="$LOCATION/mscs.defaults"
++MSCS_DEFAULTS="/etc/minecraft-mscs/mscs.defaults"
+ 
+ # Setup the arguments to the msctl script.
+ MSCS_ARGS="-p $PROG -l $LOCATION -c $MSCS_DEFAULTS $@"
+diff --git a/mscs.defaults b/mscs.defaults
+new file mode 100644
+index 0000000..57ad9f0
+--- /dev/null
++++ b/mscs.defaults
+@@ -0,0 +1,132 @@
++; MSCS defaults file for adjusting global server properties.
++
++; Default values in the script can be overridden by adding certain properties
++; to one of the mscs.defaults files. The mscs.defaults files can be found
++; found in one of three places depending on how the script is being used. When
++; using the mscs script, the mscs.defaults file can be found at
++; /var/lib/minecraft-server/mscs.defaults. When using the msctl script in multi-user mode,
++; the mscs.defaults file can be found at either \$HOME/mscs.defaults or
++; \$HOME/.config/mscs/mscs.defaults.
++
++; Uncomment key=value pairs (remove the #) to customize the value for your
++; configuration. The values shown are the default values used in the script.
++
++; Location of the mscs files.
++# mscs-location=/var/lib/minecraft-server
++
++; Location of world files.
++# mscs-worlds-location=/var/lib/minecraft-server/worlds
++
++; URL to download the version_manifest.json file.
++# mscs-versions-url=https://launchermeta.mojang.com/mc/game/version_manifest.json
++
++; Location of the version_manifest.json file.
++# mscs-versions-json=/var/lib/minecraft-server/version_manifest.json
++
++; Length in minutes to keep the version_manifest.json file before updating.
++# mscs-versions-duration=30
++
++; Length in minutes to keep lock files before removing.
++# mscs-lockfile-duration=1440
++
++; Properties to return for detailed listings.
++# mscs-detailed-listing=motd server-ip server-port max-players level-type online-mode
++
++; Default world name.
++# mscs-default-world=world
++
++; Default Port.
++# mscs-default-port=25565
++
++; Default IP address. Leave this blank unless you want to bind all world
++; servers to a single network interface by default.
++# mscs-default-ip=
++
++; Default version type (release or snapshot).
++# mscs-default-version-type=release
++
++; Default version of the client software. You can use the \$CURRENT_VERSION
++; variable to access the latest version based on the version type selected.
++# mscs-default-client-version=\$CURRENT_VERSION
++
++; Default .jar file for the client software. The \$CLIENT_VERSION variable
++; allows access to the client version selected.
++# mscs-default-client-jar=\$CLIENT_VERSION.jar
++
++; Default download URL for the client software. The \$CLIENT_VERSION variable
++; allows access to the client version selected.
++# mscs-default-client-url=
++
++; Default location of the client .jar file. The \$CLIENT_VERSION variable
++; allows access to the client version selected.
++# mscs-default-client-location=/var/lib/minecraft-server/.minecraft/versions/\$CLIENT_VERSION
++
++; Default version of the server software. You can use the \$CURRENT_VERSION
++; variable to access the latest version based on the version type selected.
++# mscs-default-server-version=\$CURRENT_VERSION
++
++; Default arguments for the JVM.
++# mscs-default-jvm-args=
++
++; Default .jar file for the server software. The \$SERVER_VERSION variable
++; allows access to the server version selected.
++# mscs-default-server-jar=minecraft_server.\$SERVER_VERSION.jar
++
++; Default download URL for the server software. The \$SERVER_VERSION variable
++; allows access to the server version selected.
++# mscs-default-server-url=
++
++; Default arguments for a world server.
++# mscs-default-server-args=nogui
++
++; Default initial amount of memory for a world server.
++# mscs-default-initial-memory=128M
++
++; Default maximum amount of memory for a world server.
++# mscs-default-maximum-memory=2048M
++
++; Default location of the server .jar file.
++# mscs-default-server-location=/var/lib/minecraft-server/server
++
++; Default command to run for a world server. You can use the \$JAVA variable to
++; access the results of \$(which java). The \$INITIAL_MEMORY and \$MAXIMUM_MEMORY
++; variables provide access to the amounts of memory selected. The
++; \$SERVER_LOCATION and \$SERVER_JAR variables provide access to the location
++; and file name of the server software selected. The \$SERVER_ARGS variable
++; provides access to the arguments for the world server selected.
++# mscs-default-server-command=\$JAVA -Xms\$INITIAL_MEMORY -Xmx\$MAXIMUM_MEMORY -jar \$SERVER_LOCATION/\$SERVER_JAR \$SERVER_ARGS
++
++; Location to store backup files.
++# mscs-backup-location=/var/lib/minecraft-server/backups
++
++; Location of the backup log file.
++# mscs-backup-log=/var/lib/minecraft-server/backups/backup.log
++
++; Files and directories excluded from backups. Each path is relative to the
++; world/<world> directory. Separate each entry with commas.
++# mscs-backup-excluded-files=
++
++; Length in days that backups survive. A value less than 1 disables backup deletion.
++# mscs-backup-duration=15
++
++; Length in days that logs survive. A value less than 1 disables log deletion.
++# mscs-log-duration=15
++
++; Enable the mirror option by default for worlds (default disabled). Change
++; to a 1 to enable.
++# mscs-enable-mirror=0
++
++; Default path for the mirror files.
++# mscs-mirror-path=/dev/shm/mscs
++
++; Location of Overviewer.
++# mscs-overviewer-bin=/usr/bin/overviewer.py
++
++; URL for Overviewer.
++# mscs-overviewer-url=http://overviewer.org
++
++; Location of Overviewer generated map files.
++# mscs-maps-location=/var/lib/minecraft-server/maps
++
++; URL for accessing Overviewer generated maps.
++# mscs-maps-url=http://minecraft.server.com/maps
+diff --git a/mscs.initd b/mscs.initd
+new file mode 100644
+index 0000000..82caac1
+--- /dev/null
++++ b/mscs.initd
+@@ -0,0 +1,22 @@
++#!/sbin/openrc-run
++
++command=/usr/bin/mscs
++name="Minecraft Server Control Script"
++
++depend() {
++	need net
++	need localmount
++	after bootmisc
++}
++
++start() {
++	ebegin "Starting mscs"
++	${command} start
++	eend $?
++}
++
++stop() {
++	ebegin "Stopping mscs"
++	${command} stop
++	eend $?
++}
+-- 
+2.39.1
+
