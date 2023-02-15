@@ -3,7 +3,8 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{7..9} )
+PYTHON_COMPAT=( python3_{7..11} )
+DISTUTILS_USE_PEP517=setuptools
 
 inherit distutils-r1
 
@@ -16,7 +17,7 @@ if [[ "${PV}" == "9999" ]]; then
 	EGIT_REPO_URI="https://github.com/stlehmann/${MY_PN}.git"
 	inherit git-r3
 else
-	SRC_URI="https://github.com/stlehmann/${MY_PN}/archive/${MY_PV}.tar.gz -> ${MY_P}.tar.gz"
+	SRC_URI="https://github.com/stlehmann/${MY_PN}/archive/${MY_PV}.tar.gz -> ${MY_P}.gh.tar.gz"
 	KEYWORDS="-* ~amd64"
 fi
 
