@@ -3,6 +3,8 @@
 
 EAPI=7
 
+inherit bash-completion-r1
+
 DESCRIPTION="Server Management Daemon for Minecraft"
 HOMEPAGE="https://minecraftservercontrol.github.io/docs/mscs https://github.com/MinecraftServerControl/mscs"
 SRC_URI="https://github.com/MinecraftServerControl/mscs/archive/v.${PV}.tar.gz -> {P}.tar.gz"
@@ -47,7 +49,6 @@ src_install() {
 	newbin mscs mscs
 	newinitd mscs.initd mscs
 
-	dodir /etc/minecraft-mscs
 	insinto /etc/minecraft-mscs
 	doins mscs.defaults
 
